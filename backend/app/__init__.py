@@ -1,0 +1,1 @@
+# LigaHikru - Documentos AI Application
