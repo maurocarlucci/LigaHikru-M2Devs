@@ -192,7 +192,7 @@ uvicorn app.main:app --reload --port 8000
 La API estará disponible en: `http://localhost:8000`
 Documentación Swagger: `http://localhost:8000/docs`
 
-### 5. Ejecutar Frontend (React - Recomendado)
+### 5. Ejecutar Frontend
 
 El frontend profesional está construido con React, Vite y TailwindCSS.
 
@@ -223,19 +223,6 @@ La aplicación estará disponible en: `http://localhost:3000`
 ```bash
 npm run build
 # Los archivos se generan en dist/
-```
-
-### 5b. Frontend Legacy (HTML Simple)
-
-También está disponible una versión simple en HTML puro:
-
-```bash
-# Opción 1: Python
-cd frontend
-python -m http.server 8080
-
-# Opción 2: Node.js
-npx http-server -p 8080
 ```
 
 ## 📡 API Endpoints
