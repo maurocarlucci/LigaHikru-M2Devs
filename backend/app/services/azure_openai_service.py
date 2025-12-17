@@ -73,19 +73,26 @@ class AzureOpenAIService:
         
         context_text = "\n\n".join(context_parts)
         
-        system_prompt = """Eres un asistente útil que responde preguntas basándote en documentos internos.
-        Siempre cita los documentos cuando uses información de ellos usando el nombre del documento.
-        Si la información no está en los documentos, di que no tienes esa información.
-        Responde de manera clara y concisa."""
+        system_prompt = """Eres un asistente especializado ÚNICAMENTE en responder preguntas sobre los documentos internos de la organización.
+
+REGLAS ESTRICTAS:
+1. SOLO puedes responder preguntas relacionadas con el contenido de los documentos proporcionados.
+2. Si el usuario envía un saludo simple (Hola, Buenos días, etc.), responde amablemente y recuérdale que estás aquí para ayudarle con preguntas sobre los documentos.
+3. Si el usuario hace una pregunta que NO está relacionada con los documentos (ej: Pokémon, clima, deportes, temas generales), responde educadamente: "Lo siento, solo puedo ayudarte con preguntas relacionadas con los documentos de la organización. ¿Tienes alguna pregunta sobre ellos?"
+4. NO respondas preguntas de conocimiento general que no estén en los documentos, aunque sepas la respuesta.
+5. Cuando la pregunta SÍ esté relacionada con los documentos, responde basándote en el contexto y cita usando el formato [Nombre del documento.pdf, Página X].
+6. Responde de manera clara y concisa."""
         
-        user_prompt = f"""Contexto de documentos:
+        user_prompt = f"""Contexto de documentos disponibles:
 {context_text}
 
-Pregunta: {question}
+Mensaje del usuario: {question}
 
-Responde la pregunta basándote únicamente en el contexto proporcionado. 
-Cita la fuente solo una vez al final de cada párrafo o sección, usando el formato [Nombre del documento.pdf, Página X].
-No repitas la misma cita múltiples veces - una cita al final de cada idea principal es suficiente."""
+Instrucciones:
+- Si es un saludo simple, responde amablemente y menciona que puedes ayudar con preguntas sobre los documentos.
+- Si la pregunta NO está relacionada con los documentos (temas externos como Pokémon, deportes, clima, etc.), rechaza educadamente y redirige al usuario a preguntar sobre los documentos.
+- Si la pregunta SÍ está relacionada con los documentos, responde basándote en el contexto y cita las fuentes.
+- No cites documentos si no usaste información de ellos en tu respuesta."""
         
         messages = [
             {"role": "system", "content": system_prompt},

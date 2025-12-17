@@ -50,7 +50,23 @@ class RAGService:
             temperature=temperature
         )
         
-        # 6. Extraer fuentes únicas
+        # 6. Filter citations - only include if the answer actually references documents
+        # Check if the answer contains document citations (indicated by brackets with .pdf, .txt, .md)
+        has_citations_in_answer = any(
+            f"[{cit.document_name}" in answer or 
+            cit.document_name.lower() in answer.lower()
+            for cit in citations
+        )
+        
+        # If no citations in answer, return empty citations (for greetings, off-topic, etc.)
+        if not has_citations_in_answer:
+            return QuestionResponse(
+                answer=answer,
+                citations=[],
+                sources=[]
+            )
+        
+        # 7. Extraer fuentes únicas
         sources = list(set([cit.document_name for cit in citations]))
         
         return QuestionResponse(

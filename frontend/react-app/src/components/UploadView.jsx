@@ -78,7 +78,7 @@ export default function UploadView() {
   };
 
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="flex flex-col h-full p-6 bg-dark-800">
       {/* Upload area */}
       <div
         onClick={() => !isUploading && fileInputRef.current?.click()}
@@ -87,11 +87,11 @@ export default function UploadView() {
         onDrop={handleDrop}
         className={`
           flex flex-col items-center justify-center
-          border-2 border-dashed rounded-xl p-10 cursor-pointer
-          transition-all duration-200
+          border-2 border-dashed rounded-xl p-12 cursor-pointer
+          transition-all duration-200 bg-dark-700
           ${isDragging 
-            ? 'border-primary-500 bg-primary-50' 
-            : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
+            ? 'border-primary-500 bg-dark-600' 
+            : 'border-dark-400 hover:border-primary-400 hover:bg-dark-600'
           }
           ${isUploading ? 'pointer-events-none opacity-60' : ''}
         `}
@@ -105,14 +105,16 @@ export default function UploadView() {
         />
 
         {isUploading ? (
-          <Spinner text="Subiendo y procesando documento..." />
+          <Spinner text="Procesando" />
         ) : (
           <>
-            <Upload className={`w-12 h-12 mb-4 ${isDragging ? 'text-primary-500' : 'text-gray-400'}`} />
-            <p className="text-gray-700 font-medium mb-2">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isDragging ? 'bg-primary-900/50' : 'bg-dark-500'}`}>
+              <Upload className={`w-8 h-8 ${isDragging ? 'text-primary-400' : 'text-dark-100'}`} />
+            </div>
+            <p className="text-dark-50 font-medium mb-2">
               Arrastra un archivo aquí o haz clic para seleccionar
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-dark-200">
               Soporta PDF, TXT, MD
             </p>
           </>
@@ -124,25 +126,25 @@ export default function UploadView() {
         <div
           className={`mt-4 p-4 rounded-xl animate-fade-in ${
             uploadResult.success
-              ? 'bg-green-50 border border-green-200'
-              : 'bg-red-50 border border-red-200'
+              ? 'bg-green-900/30 border border-green-700'
+              : 'bg-red-900/30 border border-red-700'
           }`}
         >
           <div className="flex items-start gap-3">
             {uploadResult.success ? (
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
             ) : (
-              <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
             )}
             <div className="flex-1">
-              <p className={`font-medium ${uploadResult.success ? 'text-green-800' : 'text-red-800'}`}>
+              <p className={`font-medium ${uploadResult.success ? 'text-green-300' : 'text-red-300'}`}>
                 {uploadResult.success ? 'Documento procesado' : 'Error'}
               </p>
-              <p className={`text-sm mt-1 ${uploadResult.success ? 'text-green-700' : 'text-red-700'}`}>
+              <p className={`text-sm mt-1 ${uploadResult.success ? 'text-green-400' : 'text-red-400'}`}>
                 {uploadResult.message}
               </p>
               {uploadResult.success && (
-                <div className="mt-2 text-sm text-green-600">
+                <div className="mt-2 text-sm text-green-400">
                   <p className="flex items-center gap-2">
                     <FileText className="w-4 h-4" />
                     {uploadResult.filename}
@@ -157,7 +159,7 @@ export default function UploadView() {
 
           <button
             onClick={resetUpload}
-            className="mt-3 text-sm text-gray-600 hover:text-gray-800 underline"
+            className="mt-3 text-sm text-primary-400 hover:text-primary-300 font-medium"
           >
             Subir otro documento
           </button>
@@ -166,9 +168,9 @@ export default function UploadView() {
 
       {/* Instructions */}
       <div className="mt-auto pt-4">
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-          <h3 className="font-medium text-blue-800 mb-2">Información</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
+        <div className="bg-dark-600 rounded-xl p-4 border border-dark-400">
+          <h3 className="font-medium text-dark-50 mb-2">Información</h3>
+          <ul className="text-sm text-dark-100 space-y-1">
             <li>• Los documentos se procesan y dividen en fragmentos</li>
             <li>• Se generan embeddings para búsqueda semántica</li>
             <li>• El contenido queda disponible para consultas de IA</li>

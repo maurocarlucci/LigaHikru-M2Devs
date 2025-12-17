@@ -65,7 +65,9 @@ export default function ChatView() {
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
   }, [messages]);
 
   const handleSubmit = async (e) => {
@@ -105,16 +107,19 @@ export default function ChatView() {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full">
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-6 pb-24 space-y-4 bg-dark-800 custom-scrollbar">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <FileText className="w-12 h-12 mb-3" />
-            <p className="text-center">
+          <div className="flex flex-col items-center justify-center h-full text-dark-200">
+            <div className="w-16 h-16 bg-dark-600 rounded-full flex items-center justify-center mb-4">
+              <FileText className="w-8 h-8 text-dark-100" />
+            </div>
+            <p className="text-center text-dark-50 font-medium">
               Haz una pregunta sobre tus documentos
-              <br />
-              <span className="text-sm">La IA buscará en tu base de conocimiento</span>
+            </p>
+            <p className="text-sm text-dark-200 mt-1">
+              La IA buscará en tu base de conocimiento
             </p>
           </div>
         )}
@@ -127,31 +132,31 @@ export default function ChatView() {
             }`}
           >
             <div
-              className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[70%] rounded-2xl px-4 py-3 ${
                 message.role === 'user'
-                  ? 'bg-primary-500 text-white'
+                  ? 'bg-primary-600 text-white message-tail-user'
                   : message.isError
-                  ? 'bg-red-50 text-red-700 border border-red-200'
-                  : 'bg-white text-gray-800 border border-gray-200 shadow-sm'
+                  ? 'bg-red-900/50 text-red-300 border border-red-700'
+                  : 'bg-dark-500 text-dark-50 message-tail-assistant'
               }`}
             >
-              <p className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: formatBoldText(message.content) }} />
+              <p className="whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: formatBoldText(message.content) }} />
 
               {/* Citations - grouped by document */}
               {message.citations && message.citations.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">Fuentes:</p>
+                <div className="mt-3 pt-3 border-t border-dark-400">
+                  <p className="text-xs font-semibold text-dark-100 mb-2">Fuentes:</p>
                   <div className="space-y-2">
                     {groupCitations(message.citations).map((group, citIndex) => (
                       <div
                         key={citIndex}
-                        className="text-xs bg-gray-50 rounded-lg p-2 border-l-3 border-primary-400"
+                        className="text-xs bg-dark-600 rounded-lg p-2 border-l-2 border-primary-500"
                       >
-                        <div className="flex items-center gap-2 text-primary-600 font-medium">
+                        <div className="flex items-center gap-2 text-primary-400 font-medium">
                           <FileText className="w-3 h-3" />
                           {group.document_name}
                         </div>
-                        <div className="text-gray-500 mt-1">
+                        <div className="text-dark-100 mt-1">
                           {group.pages.length > 0 && (
                             <span>
                               {group.pages.length === 1 
@@ -172,9 +177,9 @@ export default function ChatView() {
         ))}
 
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white rounded-2xl px-6 py-5 border border-gray-200 shadow-sm min-w-[200px]">
-              <Spinner text="Pensando..." />
+          <div className="flex justify-start animate-fade-in">
+            <div className="bg-dark-500 rounded-2xl px-5 py-4 message-tail-assistant">
+              <Spinner text="Pensando" />
             </div>
           </div>
         )}
@@ -182,26 +187,29 @@ export default function ChatView() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
-      <form onSubmit={handleSubmit} className="p-4 bg-white border-t border-gray-200">
-        <div className="flex gap-3">
+      {/* Input area - floating at bottom with gradient fade */}
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+        <div className="h-16 bg-gradient-to-t from-dark-800 to-transparent" />
+      </div>
+      <form onSubmit={handleSubmit} className="absolute bottom-0 left-0 right-0 px-6 pb-6 pt-4">
+        <div className="flex gap-3 max-w-3xl mx-auto">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Haz una pregunta sobre los documentos..."
+            placeholder="Escribe tu pregunta aquí..."
             disabled={isLoading}
-            className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-full 
-                       focus:outline-none focus:border-primary-400 
-                       disabled:bg-gray-50 disabled:cursor-not-allowed
-                       transition-colors"
+            className="flex-1 px-5 py-3 bg-dark-600 border border-dark-400 rounded-full 
+                       focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                       disabled:bg-dark-700 disabled:cursor-not-allowed
+                       transition-all text-dark-50 placeholder-dark-200"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="px-6 py-3 bg-primary-500 text-white rounded-full font-medium
-                       hover:bg-primary-600 disabled:bg-gray-300 disabled:cursor-not-allowed
-                       transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5
+            className="px-6 py-3 bg-primary-600 text-white rounded-full font-medium
+                       hover:bg-primary-500 disabled:bg-dark-400 disabled:cursor-not-allowed
+                       transition-all duration-200 hover:shadow-md
                        flex items-center gap-2"
           >
             <Send className="w-4 h-4" />

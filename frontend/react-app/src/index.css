@@ -2,23 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar for chat messages */
+/* Dark mode base */
+body {
+  background-color: #0f1419;
+  color: #f8fafc;
+}
+
+/* Custom scrollbar for chat messages - dark mode */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #1a2332;
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: #334155;
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: #475569;
 }
 
 /* Fade in animation for messages */
@@ -45,4 +51,37 @@
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Message bubble tails - dark mode */
+.message-tail-user {
+  position: relative;
+}
+
+.message-tail-user::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: 12px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-left-color: #0891b2;
+  border-right: 0;
+}
+
+.message-tail-assistant {
+  position: relative;
+}
+
+.message-tail-assistant::after {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 12px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-right-color: #1f2937;
+  border-left: 0;
 }
