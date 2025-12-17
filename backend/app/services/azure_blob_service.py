@@ -48,14 +48,21 @@ class AzureBlobService:
         except Exception as e:
             raise Exception(f"Error descargando archivo: {str(e)}")
     
-    def list_files(self, prefix: Optional[str] = None) -> List[str]:
-        """Lista archivos en el contenedor"""
+    def list_files(self, prefix: Optional[str] = None) -> List[dict]:
+        """Lista archivos en el contenedor con metadata"""
         try:
             container_client = self.blob_service_client.get_container_client(
                 self.container_name
             )
             blobs = container_client.list_blobs(name_starts_with=prefix)
-            return [blob.name for blob in blobs]
+            return [
+                {
+                    "name": blob.name,
+                    "size": blob.size,
+                    "last_modified": blob.last_modified.isoformat() if blob.last_modified else None
+                }
+                for blob in blobs
+            ]
         except Exception as e:
             raise Exception(f"Error listando archivos: {str(e)}")
     

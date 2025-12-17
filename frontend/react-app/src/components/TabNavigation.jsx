@@ -1,14 +1,14 @@
-import { MessageSquare, Search, Upload } from 'lucide-react';
+import { MessageSquare, Search, FolderOpen } from 'lucide-react';
 
 /**
  * Tab navigation component
- * Allows switching between Ask, Search, and Upload views
+ * Allows switching between Ask, Search, and Documents views
  */
 export default function TabNavigation({ activeTab, onTabChange }) {
   const tabs = [
     { id: 'ask', label: 'Preguntar', icon: MessageSquare },
     { id: 'search', label: 'Buscar', icon: Search },
-    { id: 'upload', label: 'Subir', icon: Upload },
+    { id: 'upload', label: 'Documentos', icon: FolderOpen },
   ];
 
   return (

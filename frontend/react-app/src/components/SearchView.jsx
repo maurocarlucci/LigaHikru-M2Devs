@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, FileText, ExternalLink } from 'lucide-react';
+import { Search, FileText } from 'lucide-react';
 import { searchDocuments } from '../services/api';
 import Spinner from './Spinner';
 
@@ -68,7 +68,7 @@ export default function SearchView() {
         {results && results.results.length > 0 && (
           <div className="space-y-4">
             <p className="text-sm text-dark-100">
-              {results.total_results} resultado{results.total_results !== 1 ? 's' : ''} para "{results.query}"
+              {results.total_results} fragmento{results.total_results !== 1 ? 's' : ''} encontrado{results.total_results !== 1 ? 's' : ''} para "{results.query}"
             </p>
 
             {results.results.map((result, index) => (
@@ -78,35 +78,25 @@ export default function SearchView() {
                            hover:bg-dark-500 transition-all duration-200"
               >
                 {/* Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 text-primary-400 font-medium">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-primary-400 font-medium text-sm">
                     <FileText className="w-4 h-4" />
                     {result.document_name}
+                    {result.metadata?.page_number && (
+                      <span className="text-dark-200 font-normal">
+                        • Página {result.metadata.page_number}
+                      </span>
+                    )}
                   </div>
-                  <span className="bg-primary-900/50 text-primary-300 px-3 py-1 rounded-full text-xs font-medium">
-                    {(result.score * 100).toFixed(1)}% relevante
+                  <span className="bg-primary-900/50 text-primary-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                    {(result.score * 100).toFixed(1)}%
                   </span>
                 </div>
 
                 {/* Content */}
-                <p className="text-dark-100 text-sm leading-relaxed mb-3">
-                  {result.content.length > 400
-                    ? `${result.content.substring(0, 400)}...`
-                    : result.content}
+                <p className="text-dark-100 text-sm leading-relaxed whitespace-pre-line">
+                  {result.content}
                 </p>
-
-                {/* Link */}
-                {result.source_url && (
-                  <a
-                    href={result.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-primary-400 hover:text-primary-300 hover:underline"
-                  >
-                    Ver documento
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
               </div>
             ))}
           </div>

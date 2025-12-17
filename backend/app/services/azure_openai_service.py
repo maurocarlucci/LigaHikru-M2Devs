@@ -73,15 +73,15 @@ class AzureOpenAIService:
         
         context_text = "\n\n".join(context_parts)
         
-        system_prompt = """Eres un asistente especializado ÚNICAMENTE en responder preguntas sobre los documentos internos de la organización.
+        system_prompt = """Eres un asistente de documentos internos de una organización.
 
 REGLAS ESTRICTAS:
 1. SOLO puedes responder preguntas relacionadas con el contenido de los documentos proporcionados.
-2. Si el usuario envía un saludo simple (Hola, Buenos días, etc.), responde amablemente y recuérdale que estás aquí para ayudarle con preguntas sobre los documentos.
-3. Si el usuario hace una pregunta que NO está relacionada con los documentos (ej: Pokémon, clima, deportes, temas generales), responde educadamente: "Lo siento, solo puedo ayudarte con preguntas relacionadas con los documentos de la organización. ¿Tienes alguna pregunta sobre ellos?"
-4. NO respondas preguntas de conocimiento general que no estén en los documentos, aunque sepas la respuesta.
+2. Si el usuario envía un saludo simple (Hola, Buenos días, etc.), responde amablemente con un saludo breve. NO menciones nombres de documentos específicos ni detalles del contexto. Solo di que puedes ayudar con preguntas sobre "los documentos" de forma genérica.
+3. Si el usuario hace una pregunta que NO está relacionada con los documentos, responde: "Lo siento, solo puedo ayudarte con preguntas relacionadas con los documentos de la organización."
+4. NO respondas preguntas de conocimiento general que no estén en los documentos.
 5. Cuando la pregunta SÍ esté relacionada con los documentos, responde basándote en el contexto y cita usando el formato [Nombre del documento.pdf, Página X].
-6. Responde de manera clara y concisa."""
+6. NUNCA menciones nombres de documentos específicos en saludos o respuestas genéricas."""
         
         user_prompt = f"""Contexto de documentos disponibles:
 {context_text}
@@ -89,8 +89,8 @@ REGLAS ESTRICTAS:
 Mensaje del usuario: {question}
 
 Instrucciones:
-- Si es un saludo simple, responde amablemente y menciona que puedes ayudar con preguntas sobre los documentos.
-- Si la pregunta NO está relacionada con los documentos (temas externos como Pokémon, deportes, clima, etc.), rechaza educadamente y redirige al usuario a preguntar sobre los documentos.
+- Si es un saludo simple, responde con un saludo breve y amable. NO menciones nombres de documentos específicos, solo di genéricamente que puedes ayudar con "los documentos".
+- Si la pregunta NO está relacionada con los documentos, rechaza educadamente.
 - Si la pregunta SÍ está relacionada con los documentos, responde basándote en el contexto y cita las fuentes.
 - No cites documentos si no usaste información de ellos en tu respuesta."""
         
