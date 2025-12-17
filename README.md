@@ -57,7 +57,24 @@ LigaHikru/
 │   ├── env.example
 │   └── .env                  # Configuración (no versionado)
 ├── frontend/
-│   └── index.html                  # UI simple con chat
+│   └── react-app/                  # UI profesional en React
+│       ├── src/
+│       │   ├── components/         # Componentes React
+│       │   │   ├── ChatView.jsx    # Vista de chat (Flujo 1)
+│       │   │   ├── SearchView.jsx  # Vista de búsqueda (Flujo 2)
+│       │   │   ├── UploadView.jsx  # Vista de subida (Flujo 3)
+│       │   │   ├── Header.jsx
+│       │   │   ├── TabNavigation.jsx
+│       │   │   └── Spinner.jsx
+│       │   ├── services/
+│       │   │   └── api.js          # Capa de integración con API
+│       │   ├── App.jsx
+│       │   ├── main.jsx
+│       │   └── index.css
+│       ├── package.json
+│       ├── vite.config.js
+│       ├── tailwind.config.js
+│       └── .env.example
 └── README.md
 ```
 
@@ -66,6 +83,7 @@ LigaHikru/
 ### 1. Requisitos Previos
 
 - Python 3.9+
+- Node.js 18+ (para el frontend React)
 - Cuenta de Azure con:
   - Azure OpenAI (con deployments de chat y embeddings configurados)
   - Azure AI Search
@@ -174,9 +192,42 @@ uvicorn app.main:app --reload --port 8000
 La API estará disponible en: `http://localhost:8000`
 Documentación Swagger: `http://localhost:8000/docs`
 
-### 5. Ejecutar Frontend
+### 5. Ejecutar Frontend (React - Recomendado)
 
-Abrir `frontend/index.html` en un navegador o servir con un servidor HTTP simple:
+El frontend profesional está construido con React, Vite y TailwindCSS.
+
+```bash
+cd frontend/react-app
+
+# Instalar dependencias
+npm install
+
+# Configurar URL del backend (opcional, por defecto usa localhost:8000)
+cp .env.example .env
+# Editar .env si el backend está en otra URL
+
+# Iniciar servidor de desarrollo
+npm run dev
+```
+
+La aplicación estará disponible en: `http://localhost:3000`
+
+#### Características del Frontend React
+
+- **Preguntar**: Chat con IA que responde basándose en tus documentos, con citas agrupadas por documento
+- **Buscar**: Búsqueda semántica de fragmentos relevantes con scores de relevancia
+- **Subir**: Drag & drop para subir documentos PDF, TXT o MD
+
+#### Build para Producción
+
+```bash
+npm run build
+# Los archivos se generan en dist/
+```
+
+### 5b. Frontend Legacy (HTML Simple)
+
+También está disponible una versión simple en HTML puro:
 
 ```bash
 # Opción 1: Python
@@ -246,10 +297,12 @@ npx http-server -p 8080
 - ✅ Búsqueda semántica con embeddings
 - ✅ Búsqueda híbrida (texto + vectorial)
 - ✅ RAG (Retrieval Augmented Generation)
-- ✅ Citas a documentos fuente
-- ✅ UI simple e intuitiva
+- ✅ Citas a documentos fuente con páginas agrupadas
+- ✅ Frontend profesional en React con TailwindCSS
+- ✅ Soporte para formato **bold** en respuestas de IA
 - ✅ API REST con Swagger
 - ✅ Soporte para PDF, TXT, MD
+- ✅ Drag & drop para subir documentos
 
 ## 🔧 Próximos Pasos (Opcional)
 
