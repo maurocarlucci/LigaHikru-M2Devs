@@ -204,7 +204,7 @@ export default function UploadView() {
                     onClick={() => handleDeleteClick(doc.name)}
                     disabled={deletingFile === doc.name}
                     className="p-1.5 text-dark-300 hover:text-red-400 hover:bg-red-900/30 rounded-lg 
-                               transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                               transition-all disabled:opacity-50"
                     title="Eliminar"
                   >
                     {deletingFile === doc.name ? (
