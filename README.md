@@ -1,4 +1,4 @@
-# LigaHikru - Documentos AI
+Hikru Insight
 
 Sistema de búsqueda y consulta de documentos internos usando Azure AI Services.
 
