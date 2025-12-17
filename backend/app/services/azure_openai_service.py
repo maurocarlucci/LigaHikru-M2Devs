@@ -63,13 +63,18 @@ class AzureOpenAIService:
         temperature: float = 0.7
     ) -> str:
         """Genera una respuesta RAG con contexto"""
-        context_text = "\n\n".join([
-            f"[Documento {i+1}]: {ctx}" 
-            for i, ctx in enumerate(context)
-        ])
+        # Build context with actual document names and page numbers
+        context_parts = []
+        for i, ctx in enumerate(context):
+            doc_name = citations[i].get("document_name", f"Documento {i+1}") if i < len(citations) else f"Documento {i+1}"
+            page_num = citations[i].get("page_number") if i < len(citations) else None
+            page_info = f" (Página {page_num})" if page_num else ""
+            context_parts.append(f"[{doc_name}{page_info}]: {ctx}")
+        
+        context_text = "\n\n".join(context_parts)
         
         system_prompt = """Eres un asistente útil que responde preguntas basándote en documentos internos.
-        Siempre cita los documentos cuando uses información de ellos.
+        Siempre cita los documentos cuando uses información de ellos usando el nombre del documento.
         Si la información no está en los documentos, di que no tienes esa información.
         Responde de manera clara y concisa."""
         
@@ -79,7 +84,8 @@ class AzureOpenAIService:
 Pregunta: {question}
 
 Responde la pregunta basándote únicamente en el contexto proporcionado. 
-Menciona los números de documento cuando cites información (ej: [Documento 1], [Documento 2])."""
+Cita la fuente solo una vez al final de cada párrafo o sección, usando el formato [Nombre del documento.pdf, Página X].
+No repitas la misma cita múltiples veces - una cita al final de cada idea principal es suficiente."""
         
         messages = [
             {"role": "system", "content": system_prompt},
