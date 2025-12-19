@@ -57,7 +57,7 @@ def create_index():
     # Para campos vectoriales, usar SearchField con vector_search_dimensions y vector_search_profile_name
     fields = [
         SimpleField(name="id", type=SearchFieldDataType.String, key=True),
-        SearchableField(name="documentName", type=SearchFieldDataType.String),
+        SearchableField(name="documentName", type=SearchFieldDataType.String, filterable=True),
         SearchableField(name="content", type=SearchFieldDataType.String),
         SearchField(
             name="contentVector",

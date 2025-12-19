@@ -137,3 +137,40 @@ class AzureSearchService:
                 raise Exception(f"Error de dimensiones: {error_msg}")
             else:
                 raise Exception(f"Error subiendo chunk a Azure AI Search: {error_msg}")
+    
+    def delete_document_chunks(self, document_name: str) -> int:
+        """
+        Elimina todos los chunks de un documento del índice.
+        Busca por documentName y elimina todos los chunks encontrados.
+        Retorna el número de chunks eliminados.
+        """
+        try:
+            # Buscar todos los chunks del documento por nombre exacto
+            # Usamos búsqueda de texto en el campo documentName
+            results = self.client.search(
+                search_text=document_name,
+                search_fields=["documentName"],
+                select=["id", "documentName"],
+                top=1000  # Máximo de chunks a eliminar por documento
+            )
+            
+            # Recolectar solo los IDs donde el documentName coincide exactamente
+            chunk_ids = [
+                result["id"] for result in results 
+                if result.get("documentName") == document_name
+            ]
+            
+            if not chunk_ids:
+                return 0
+            
+            # Eliminar los chunks en lotes
+            documents_to_delete = [{"id": chunk_id} for chunk_id in chunk_ids]
+            result = self.client.delete_documents(documents=documents_to_delete)
+            
+            # Contar eliminaciones exitosas
+            deleted_count = sum(1 for r in result if r.succeeded)
+            
+            return deleted_count
+            
+        except Exception as e:
+            raise Exception(f"Error eliminando chunks del índice: {str(e)}")

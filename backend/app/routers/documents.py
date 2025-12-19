@@ -2,11 +2,13 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 from app.models.schemas import DocumentUploadResponse
 from app.services.document_processor import DocumentProcessor
 from app.services.azure_blob_service import AzureBlobService
+from app.services.azure_search_service import AzureSearchService
 import os
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 document_processor = DocumentProcessor()
 blob_service = AzureBlobService()
+search_service = AzureSearchService()
 
 
 @router.post("/upload", response_model=DocumentUploadResponse)
@@ -87,9 +89,22 @@ async def list_documents():
 
 @router.delete("/{filename}")
 async def delete_document(filename: str):
-    """Elimina un documento del storage"""
+    """
+    Elimina un documento del storage y sus chunks del índice de búsqueda.
+    
+    1. Elimina los chunks del documento en Azure AI Search
+    2. Elimina el archivo de Azure Blob Storage
+    """
     try:
+        # 1. Eliminar chunks del índice de búsqueda
+        chunks_deleted = search_service.delete_document_chunks(filename)
+        
+        # 2. Eliminar archivo del blob storage
         blob_service.delete_file(filename)
-        return {"message": f"Documento {filename} eliminado exitosamente"}
+        
+        return {
+            "message": f"Documento {filename} eliminado exitosamente",
+            "chunks_deleted": chunks_deleted
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error eliminando documento: {str(e)}")
