@@ -3,12 +3,14 @@ import { MessageSquare, Search, FolderOpen } from 'lucide-react';
 /**
  * Tab navigation component
  * Allows switching between Ask, Search, and Documents views
+ * Documents tab is only visible to admins
  */
-export default function TabNavigation({ activeTab, onTabChange }) {
+export default function TabNavigation({ activeTab, onTabChange, user }) {
   const tabs = [
     { id: 'ask', label: 'Preguntar', icon: MessageSquare },
     { id: 'search', label: 'Buscar', icon: Search },
-    { id: 'upload', label: 'Documentos', icon: FolderOpen },
+    // Only show Documents tab for admins
+    ...(user?.role === 'admin' ? [{ id: 'upload', label: 'Documentos', icon: FolderOpen }] : []),
   ];
 
   return (

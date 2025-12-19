@@ -19,6 +19,18 @@ class Settings(BaseSettings):
     AZURE_STORAGE_CONNECTION_STRING: str
     AZURE_STORAGE_CONTAINER_NAME: str = "documentos"
     
+    # Azure SQL Database (opcional, requerido para autenticación)
+    AZURE_SQL_SERVER: Optional[str] = None
+    AZURE_SQL_DATABASE: Optional[str] = None
+    AZURE_SQL_USERNAME: Optional[str] = None
+    AZURE_SQL_PASSWORD: Optional[str] = None
+    AZURE_SQL_DRIVER: str = "{ODBC Driver 18 for SQL Server}"
+    
+    # Authentication
+    JWT_SECRET_KEY: str = "your-secret-key-change-in-production"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 horas
+    
     # Application
     APP_NAME: str = "LigaHikru - Documentos AI"
     APP_VERSION: str = "1.0.0"

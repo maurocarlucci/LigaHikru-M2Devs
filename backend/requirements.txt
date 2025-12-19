@@ -8,3 +8,5 @@ azure-search-documents>=11.4.0
 azure-storage-blob>=12.19.0
 PyPDF2>=3.0.1
 python-dotenv>=1.0.0
+python-jose[cryptography]>=3.3.0
+bcrypt>=4.0.0

@@ -64,3 +64,46 @@ class DocumentUploadResponse(BaseModel):
     status: str
     chunks_processed: int
     message: str
+
+
+# Authentication Schemas
+class UserBase(BaseModel):
+    """Base de usuario"""
+    email: str
+    username: str
+
+
+class UserCreate(UserBase):
+    """Crear usuario"""
+    password: str
+
+
+class User(UserBase):
+    """Usuario"""
+    id: int
+    role: str = "user"  # "admin" o "user"
+    created_at: Optional[datetime] = None
+    is_active: bool = True
+    
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    """Token de acceso"""
+    access_token: str
+    token_type: str = "bearer"
+    user: User
+
+
+class SignUpRequest(BaseModel):
+    """Request para registro"""
+    email: str
+    username: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    """Request para login"""
+    email: str
+    password: str

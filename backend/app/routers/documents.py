@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from app.models.schemas import DocumentUploadResponse
 from app.services.document_processor import DocumentProcessor
 from app.services.azure_blob_service import AzureBlobService
 from app.services.azure_search_service import AzureSearchService
+from app.core.dependencies import require_admin, get_current_user
 import os
 
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
@@ -12,7 +13,10 @@ search_service = AzureSearchService()
 
 
 @router.post("/upload", response_model=DocumentUploadResponse)
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(
+    file: UploadFile = File(...),
+    admin: dict = Depends(require_admin)
+):
     """
     Sube y procesa un documento (PDF o texto).
     
@@ -78,8 +82,12 @@ async def upload_document(file: UploadFile = File(...)):
 
 
 @router.get("/list")
-async def list_documents():
-    """Lista todos los documentos en el storage"""
+async def list_documents(current_user: dict = Depends(get_current_user)):
+    """
+    Lista todos los documentos en el storage
+    
+    Requiere autenticación (usuarios normales y administradores pueden ver)
+    """
     try:
         files = blob_service.list_files()
         return {"documents": files, "total": len(files)}
@@ -88,9 +96,14 @@ async def list_documents():
 
 
 @router.delete("/{filename}")
-async def delete_document(filename: str):
+async def delete_document(
+    filename: str,
+    admin: dict = Depends(require_admin)
+):
     """
     Elimina un documento del storage y sus chunks del índice de búsqueda.
+    
+    **Solo administradores pueden eliminar documentos.**
     
     1. Elimina los chunks del documento en Azure AI Search
     2. Elimina el archivo de Azure Blob Storage

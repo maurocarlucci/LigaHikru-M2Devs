@@ -24,7 +24,12 @@ Los equipos (soporte, RRHH, operaciones) pierden tiempo buscando respuestas en d
    - Almacenamiento de documentos fuente
    - URLs para acceso directo
 
-4. **Azure Functions** (Opcional)
+4. **Azure SQL Database**
+   - Base de datos para usuarios y autenticación
+   - Almacenamiento de metadata de documentos
+   - Historial de preguntas y búsquedas
+
+5. **Azure Functions** (Opcional)
    - Para automatizar ingestión/actualización del índice
 
 ## 📁 Estructura del Proyecto
@@ -43,23 +48,30 @@ LigaHikru/
 │   │   │   ├── azure_openai_service.py
 │   │   │   ├── azure_search_service.py
 │   │   │   ├── azure_blob_service.py
+│   │   │   ├── azure_sql_service.py
+│   │   │   ├── auth_service.py
 │   │   │   ├── document_processor.py
 │   │   │   ├── rag_service.py
 │   │   │   └── __init__.py
 │   │   ├── routers/
+│   │   │   ├── auth.py              # Endpoints: /signup, /login
 │   │   │   ├── chat.py             # Endpoints: /ask, /search
 │   │   │   ├── documents.py         # Endpoints: /upload, /list, /delete
 │   │   │   └── __init__.py
+│   │   ├── core/
+│   │   │   ├── dependencies.py      # Dependencias de autenticación
 │   │   ├── main.py                 # FastAPI app
 │   │   └── __init__.py
 │   ├── requirements.txt
 │   ├── create_index.py      # Script para crear el índice en Azure AI Search
+│   ├── create_admin.py      # Script para crear usuario administrador
 │   ├── env.example
 │   └── .env                  # Configuración (no versionado)
 ├── frontend/
 │   └── react-app/                  # UI profesional en React
 │       ├── src/
 │       │   ├── components/         # Componentes React
+│       │   │   ├── LoginView.jsx   # Vista de login/signup
 │       │   │   ├── ChatView.jsx    # Vista de chat (Flujo 1)
 │       │   │   ├── SearchView.jsx  # Vista de búsqueda (Flujo 2)
 │       │   │   ├── UploadView.jsx  # Vista de subida (Flujo 3)
@@ -84,15 +96,37 @@ LigaHikru/
 
 - Python 3.9+
 - Node.js 18+ (para el frontend React)
+- ODBC Driver 18 for SQL Server (para conectar a Azure SQL)
 - Cuenta de Azure con:
   - Azure OpenAI (con deployments de chat y embeddings configurados)
   - Azure AI Search
   - Azure Blob Storage
+  - Azure SQL Database (para autenticación y usuarios)
 
 ### 2. Configuración Backend
 
+**Primero, activa el entorno virtual:**
+
+En PowerShell:
+```powershell
+cd backend
+.\venv\Scripts\Activate.ps1
+```
+
+Si obtienes un error de política de ejecución, ejecuta primero:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+En CMD o Git Bash:
 ```bash
 cd backend
+.\venv\Scripts\activate
+```
+
+**Luego, instala las dependencias:**
+
+```bash
 pip install -r requirements.txt
 ```
 
@@ -103,13 +137,44 @@ cp env.example .env
 # Editar .env con tus credenciales de Azure
 ```
 
+**📋 Las credenciales de Azure están en el documento entregado.** Copia las credenciales del documento a tu archivo `.env`.
+
 **⚠️ IMPORTANTE:** El archivo `.env` contiene credenciales sensibles y **NO debe versionarse** en Git. El archivo está incluido en `.gitignore` para proteger tus credenciales.
 
-### 3. Crear Índice en Azure AI Search
+**Nota:** Asegúrate de que el entorno virtual esté activado (verás `(venv)` en tu prompt) antes de ejecutar cualquier comando de Python o pip.
+
+**Variables de entorno requeridas en `.env`:**
+- Azure OpenAI (endpoint, API key, deployment names)
+- Azure AI Search (endpoint, API key, index name)
+- Azure Blob Storage (connection string, container name)
+- Azure SQL Database (server, database, username, password) - para autenticación
+- Authentication (JWT_SECRET_KEY, JWT_ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES)
+
+Ver `backend/env.example` para ver todas las variables necesarias.
+
+### 3. Crear Usuario Administrador
+
+**IMPORTANTE:** Antes de usar la aplicación, debes crear al menos un usuario administrador.
+
+**Asegúrate de tener el entorno virtual activado** (verás `(venv)` en tu prompt), luego ejecuta:
+
+```bash
+cd backend
+python create_admin.py
+```
+
+El script te pedirá:
+- Email del administrador
+- Username
+- Contraseña (mínimo 6 caracteres, máximo 72)
+
+**Nota:** Solo los administradores pueden subir y eliminar documentos. Los usuarios normales pueden ver documentos y hacer consultas.
+
+### 4. Crear Índice en Azure AI Search
 
 **IMPORTANTE:** Antes de usar la aplicación, debes crear el índice en Azure AI Search.
 
-Ejecuta el script de creación del índice:
+**Asegúrate de tener el entorno virtual activado** (verás `(venv)` en tu prompt), luego ejecuta:
 
 ```bash
 cd backend
@@ -182,7 +247,9 @@ Este script creará automáticamente el índice `documentos-index` con el esquem
 }
 ```
 
-### 4. Ejecutar Backend
+### 5. Ejecutar Backend
+
+**Asegúrate de tener el entorno virtual activado** (verás `(venv)` en tu prompt):
 
 ```bash
 cd backend
@@ -192,7 +259,13 @@ uvicorn app.main:app --reload --port 8000
 La API estará disponible en: `http://localhost:8000`
 Documentación Swagger: `http://localhost:8000/docs`
 
-### 5. Ejecutar Frontend
+**Alternativa:** Puedes usar el script `start.bat` que activa el entorno virtual y ejecuta el servidor automáticamente:
+```bash
+cd backend
+.\start.bat
+```
+
+### 6. Ejecutar Frontend
 
 El frontend profesional está construido con React, Vite y TailwindCSS.
 
@@ -214,9 +287,11 @@ La aplicación estará disponible en: `http://localhost:3000`
 
 #### Características del Frontend React
 
+- **Autenticación**: Sistema de login/signup con diseño moderno
+- **Roles**: Administradores y usuarios con permisos diferenciados
 - **Preguntar**: Chat con IA que responde basándose en tus documentos, con citas agrupadas por documento
 - **Buscar**: Búsqueda semántica de fragmentos relevantes con scores de relevancia
-- **Subir**: Drag & drop para subir documentos PDF, TXT o MD
+- **Subir**: Drag & drop para subir documentos PDF, TXT o MD (solo administradores)
 
 #### Build para Producción
 
@@ -227,9 +302,36 @@ npm run build
 
 ## 📡 API Endpoints
 
+### Autenticación
+
+- `POST /api/auth/signup` - Registro de nuevo usuario
+  ```json
+  {
+    "email": "usuario@ejemplo.com",
+    "username": "usuario123",
+    "password": "contraseña123"
+  }
+  ```
+  Retorna: `{ "access_token": "...", "token_type": "bearer", "user": {...} }`
+
+- `POST /api/auth/login-json` - Login de usuario (JSON)
+  ```json
+  {
+    "email": "usuario@ejemplo.com",
+    "password": "contraseña123"
+  }
+  ```
+  Retorna: `{ "access_token": "...", "token_type": "bearer", "user": {...} }`
+
+- `POST /api/auth/login` - Login de usuario (OAuth2 form)
+  - Usa `application/x-www-form-urlencoded`
+  - Campos: `username` (email), `password`
+
+**Nota:** Todos los endpoints protegidos requieren el header: `Authorization: Bearer <token>`
+
 ### Chat
 
-- `POST /api/chat/ask` - Hacer una pregunta
+- `POST /api/chat/ask` - Hacer una pregunta (público)
   ```json
   {
     "question": "¿Cuál es la política de vacaciones?",
@@ -240,7 +342,7 @@ npm run build
   
   **Nota:** El parámetro `temperature` se acepta en la API pero algunos modelos (como gpt-5.2-chat) solo soportan el valor por defecto (1.0).
 
-- `POST /api/chat/search` - Buscar documentos
+- `POST /api/chat/search` - Buscar documentos (público)
   ```json
   {
     "query": "política de vacaciones",
@@ -250,9 +352,18 @@ npm run build
 
 ### Documentos
 
-- `POST /api/documents/upload` - Subir y procesar documento
-- `GET /api/documents/list` - Listar documentos
-- `DELETE /api/documents/{filename}` - Eliminar documento
+- `GET /api/documents/list` - Listar documentos (requiere autenticación)
+  - Headers: `Authorization: Bearer <token>`
+  - Disponible para: usuarios y administradores
+
+- `POST /api/documents/upload` - Subir y procesar documento (solo administradores)
+  - Headers: `Authorization: Bearer <token>`
+  - Body: `multipart/form-data` con el archivo
+  - Disponible para: solo administradores
+
+- `DELETE /api/documents/{filename}` - Eliminar documento (solo administradores)
+  - Headers: `Authorization: Bearer <token>`
+  - Disponible para: solo administradores
 
 ## 🔄 Flujos de Trabajo
 
@@ -281,6 +392,13 @@ npm run build
 
 ## 🎨 Características
 
+- ✅ **Sistema de autenticación completo**
+  - Login y registro de usuarios
+  - Tokens JWT para sesiones
+  - Protección de rutas con roles
+- ✅ **Sistema de roles**
+  - Administradores: pueden subir/eliminar documentos
+  - Usuarios: pueden ver documentos y hacer consultas
 - ✅ Búsqueda semántica con embeddings
 - ✅ Búsqueda híbrida (texto + vectorial)
 - ✅ RAG (Retrieval Augmented Generation)
@@ -290,18 +408,60 @@ npm run build
 - ✅ API REST con Swagger
 - ✅ Soporte para PDF, TXT, MD
 - ✅ Drag & drop para subir documentos
+- ✅ Base de datos Azure SQL para usuarios y metadata
+
+## 🔐 Autenticación y Roles
+
+### Roles del Sistema
+
+- **Administrador (admin)**
+  - Puede subir documentos
+  - Puede eliminar documentos
+  - Puede ver todos los documentos
+  - Ve la pestaña "Documentos" en el frontend
+
+- **Usuario (user)**
+  - Puede ver documentos
+  - Puede hacer preguntas y búsquedas
+  - No puede subir ni eliminar documentos
+  - No ve la pestaña "Documentos" en el frontend
+
+### Crear Usuarios
+
+**Administrador:**
+```bash
+cd backend
+python create_admin.py
+```
+
+**Usuario normal:**
+- Se registran desde el frontend usando el formulario de signup
+- Todos los usuarios nuevos tienen rol "user" por defecto
+
+### Uso de Tokens
+
+Después de hacer login, recibirás un token JWT. Inclúyelo en todas las requests protegidas:
+
+```bash
+Authorization: Bearer <tu-token-aqui>
+```
+
+Los tokens expiran después de 24 horas (configurable en `ACCESS_TOKEN_EXPIRE_MINUTES`).
 
 ## 🔧 Próximos Pasos (Opcional)
 
 - [ ] Implementar Azure Functions para ingestión automática
-- [ ] Agregar autenticación/autorización
 - [ ] Mejorar chunking (overlap inteligente)
 - [ ] Agregar más formatos de archivo
 - [ ] Implementar cache de respuestas
 - [ ] Agregar métricas y logging
 - [ ] Deploy a Azure App Service
+- [ ] Recuperación de contraseña
+- [ ] Verificación de email
 
 ## 📝 Notas
+
+### Documentos y Búsqueda
 
 - Los documentos deben estar en español o el idioma configurado
 - El tamaño de chunks es configurable (default: 1000 caracteres)
@@ -314,14 +474,45 @@ npm run build
 - El índice debe crearse antes de subir documentos (usar `create_index.py`)
 - Los nombres de archivo con caracteres especiales se normalizan automáticamente para los IDs del índice
 
+### Autenticación
+
+- Las contraseñas se hashean con bcrypt (límite de 72 caracteres)
+- Los tokens JWT expiran después de 24 horas por defecto
+- Cambia `JWT_SECRET_KEY` en producción por una clave segura
+- La tabla `users` se crea automáticamente al iniciar el servidor
+- El historial de preguntas y búsquedas se asocia con el `user_id` del token
+
+## 🔒 Seguridad
+
+### Recomendaciones para Producción
+
+- ✅ Cambiar `JWT_SECRET_KEY` por una clave segura y aleatoria
+- ✅ Configurar CORS para permitir solo dominios específicos
+- ✅ Usar HTTPS en producción
+- ✅ Limitar reglas de firewall de Azure SQL a IPs específicas
+- ✅ Considerar usar Azure Key Vault para almacenar credenciales
+- ✅ Implementar rate limiting
+- ✅ Agregar logging estructurado
+- ✅ Considerar Azure AD authentication para empresas
+
+### Variables de Entorno Sensibles
+
+Nunca subas a Git:
+- `.env` (contiene todas las credenciales)
+- `JWT_SECRET_KEY` (debe ser única y segura)
+- Credenciales de Azure SQL
+- API Keys de Azure
+
 ## 🤝 Contribuir
 
 Este es un proyecto de demostración. Para producción, considerar:
 - Validación de inputs más robusta
 - Manejo de errores mejorado
 - Rate limiting
-- Autenticación
 - Logging estructurado
+- Recuperación de contraseña
+- Verificación de email
+- Auditoría de acciones de administradores
 
 ## 📄 Licencia
 

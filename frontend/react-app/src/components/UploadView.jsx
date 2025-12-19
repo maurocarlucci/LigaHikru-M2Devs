@@ -28,7 +28,12 @@ export default function UploadView() {
       const response = await listDocuments();
       setDocuments(response.documents || []);
     } catch (error) {
-      showNotification('error', `Error cargando documentos: ${error.message}`);
+      if (error.message.includes('401') || error.message.includes('No se pudo validar')) {
+        showNotification('error', 'Sesión expirada. Por favor, inicia sesión nuevamente.');
+        // Redirect will be handled by App.jsx when token is invalid
+      } else {
+        showNotification('error', `Error cargando documentos: ${error.message}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +83,13 @@ export default function UploadView() {
       setShowUploadModal(false);
       loadDocuments();
     } catch (error) {
-      showNotification('error', error.message);
+      if (error.message.includes('403') || error.message.includes('administrador')) {
+        showNotification('error', 'Solo los administradores pueden subir documentos.');
+      } else if (error.message.includes('401') || error.message.includes('No se pudo validar')) {
+        showNotification('error', 'Sesión expirada. Por favor, inicia sesión nuevamente.');
+      } else {
+        showNotification('error', error.message);
+      }
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -101,7 +112,13 @@ export default function UploadView() {
       showNotification('success', `${filename} eliminado`);
       loadDocuments();
     } catch (error) {
-      showNotification('error', `Error eliminando: ${error.message}`);
+      if (error.message.includes('403') || error.message.includes('administrador')) {
+        showNotification('error', 'Solo los administradores pueden eliminar documentos.');
+      } else if (error.message.includes('401') || error.message.includes('No se pudo validar')) {
+        showNotification('error', 'Sesión expirada. Por favor, inicia sesión nuevamente.');
+      } else {
+        showNotification('error', `Error eliminando: ${error.message}`);
+      }
     } finally {
       setDeletingFile(null);
     }

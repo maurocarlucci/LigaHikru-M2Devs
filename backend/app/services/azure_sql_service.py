@@ -42,6 +42,17 @@ class AzureSQLService:
             return
         
         create_tables_sql = """
+        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'users')
+        CREATE TABLE users (
+            id INT PRIMARY KEY IDENTITY(1,1),
+            email NVARCHAR(255) NOT NULL UNIQUE,
+            username NVARCHAR(100) NOT NULL UNIQUE,
+            hashed_password NVARCHAR(255) NOT NULL,
+            role NVARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'user')),
+            created_at DATETIME2 DEFAULT GETDATE(),
+            is_active BIT DEFAULT 1
+        );
+        
         IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'documents')
         CREATE TABLE documents (
             id INT PRIMARY KEY IDENTITY(1,1),
@@ -59,8 +70,9 @@ class AzureSQLService:
             question NVARCHAR(MAX) NOT NULL,
             answer NVARCHAR(MAX),
             created_at DATETIME2 DEFAULT GETDATE(),
-            user_id NVARCHAR(100),
-            response_time_ms INT
+            user_id INT,
+            response_time_ms INT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
         );
         
         IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'search_history')
@@ -69,7 +81,8 @@ class AzureSQLService:
             query NVARCHAR(MAX) NOT NULL,
             results_count INT,
             created_at DATETIME2 DEFAULT GETDATE(),
-            user_id NVARCHAR(100)
+            user_id INT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
         );
         """
         
@@ -199,3 +212,132 @@ class AzureSQLService:
         except Exception as e:
             print(f"Error obteniendo historial: {str(e)}")
             return []
+    
+    # Authentication methods
+    def create_user(self, email: str, username: str, hashed_password: str, role: str = "user") -> Optional[int]:
+        """Crea un nuevo usuario y retorna su ID"""
+        if not self.Session:
+            return None
+        
+        try:
+            session = self.Session()
+            result = session.execute(
+                text("""
+                    INSERT INTO users (email, username, hashed_password, role)
+                    OUTPUT INSERTED.id
+                    VALUES (:email, :username, :hashed_password, :role)
+                """),
+                {
+                    "email": email,
+                    "username": username,
+                    "hashed_password": hashed_password,
+                    "role": role
+                }
+            )
+            user_id = result.scalar()
+            session.commit()
+            session.close()
+            return user_id
+        except Exception as e:
+            print(f"Error creando usuario: {str(e)}")
+            session.rollback()
+            session.close()
+            return None
+    
+    def get_user_by_email(self, email: str) -> Optional[Dict]:
+        """Obtiene un usuario por email"""
+        if not self.Session:
+            return None
+        
+        try:
+            session = self.Session()
+            result = session.execute(
+                text("SELECT id, email, username, hashed_password, role, created_at, is_active FROM users WHERE email = :email"),
+                {"email": email}
+            )
+            row = result.fetchone()
+            session.close()
+            
+            if row:
+                return {
+                    "id": row[0],
+                    "email": row[1],
+                    "username": row[2],
+                    "hashed_password": row[3],
+                    "role": row[4],
+                    "created_at": row[5],
+                    "is_active": bool(row[6]) if row[6] is not None else True
+                }
+            return None
+        except Exception as e:
+            print(f"Error obteniendo usuario: {str(e)}")
+            return None
+    
+    def get_user_by_id(self, user_id: int) -> Optional[Dict]:
+        """Obtiene un usuario por ID"""
+        if not self.Session:
+            return None
+        
+        try:
+            session = self.Session()
+            result = session.execute(
+                text("SELECT id, email, username, role, created_at, is_active FROM users WHERE id = :user_id"),
+                {"user_id": user_id}
+            )
+            row = result.fetchone()
+            session.close()
+            
+            if row:
+                return {
+                    "id": row[0],
+                    "email": row[1],
+                    "username": row[2],
+                    "role": row[3],
+                    "created_at": row[4],
+                    "is_active": bool(row[5]) if row[5] is not None else True
+                }
+            return None
+        except Exception as e:
+            print(f"Error obteniendo usuario: {str(e)}")
+            return None
+    
+    def email_exists(self, email: str) -> bool:
+        """Verifica si un email ya existe"""
+        if not self.Session:
+            return False
+        
+        try:
+            session = self.Session()
+            result = session.execute(
+                text("SELECT COUNT(*) FROM users WHERE email = :email"),
+                {"email": email}
+            )
+            count = result.scalar()
+            session.close()
+            return count > 0
+        except Exception as e:
+            print(f"Error verificando email: {str(e)}")
+            return False
+    
+    def username_exists(self, username: str) -> bool:
+        """Verifica si un username ya existe"""
+        if not self.Session:
+            return False
+        
+        try:
+            session = self.Session()
+            result = session.execute(
+                text("SELECT COUNT(*) FROM users WHERE username = :username"),
+                {"username": username}
+            )
+            count = result.scalar()
+            session.close()
+            return count > 0
+        except Exception as e:
+            print(f"Error verificando username: {str(e)}")
+            return False
+    
+    def create_admin_user(self, email: str, username: str, password: str) -> Optional[int]:
+        """Crea un usuario administrador (solo para setup inicial)"""
+        from app.services.auth_service import get_password_hash
+        return self.create_user(email, username, get_password_hash(password), role="admin")
