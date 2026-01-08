@@ -1,0 +1,76 @@
+# Render.com Configuration File
+# Este archivo permite configurar múltiples servicios desde un solo lugar
+# Ve a https://dashboard.render.com y selecciona "New Blueprint" para usar este archivo
+
+services:
+  # Backend - FastAPI
+  - type: web
+    name: ligahikru-backend
+    env: python
+    region: oregon  # o usa 'frankfurt', 'singapore', etc.
+    plan: free  # o 'starter', 'standard', etc.
+    # NOTA: Si usas este archivo como Blueprint, Render puede no respetar rootDir correctamente
+    # Mejor configuración manual en el dashboard con:
+    # Root Directory: (vacío)
+    # Build Command: cd backend && pip install -r requirements.txt
+    # Start Command: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # rootDir: backend  # Comentado porque es más confiable usar cd en los comandos
+    envVars:
+      # Estas variables DEBEN ser configuradas en el dashboard de Render
+      # No las pongas aquí con valores reales por seguridad
+      - key: AZURE_OPENAI_ENDPOINT
+        sync: false
+      - key: AZURE_OPENAI_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_DEPLOYMENT_NAME
+        value: gpt-5.2-chat
+      - key: AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME
+        value: text-embedding-3-small
+      - key: AZURE_OPENAI_API_VERSION
+        value: 2024-06-01
+      - key: AZURE_SEARCH_ENDPOINT
+        sync: false
+      - key: AZURE_SEARCH_API_KEY
+        sync: false
+      - key: AZURE_SEARCH_INDEX_NAME
+        value: documentos-index
+      - key: AZURE_STORAGE_CONNECTION_STRING
+        sync: false
+      - key: AZURE_STORAGE_CONTAINER_NAME
+        value: documentos
+      - key: AZURE_SQL_SERVER
+        sync: false
+      - key: AZURE_SQL_DATABASE
+        sync: false
+      - key: AZURE_SQL_USERNAME
+        sync: false
+      - key: AZURE_SQL_PASSWORD
+        sync: false
+      - key: AZURE_SQL_DRIVER
+        value: "{ODBC Driver 18 for SQL Server}"
+      - key: JWT_SECRET_KEY
+        generateValue: true  # Render generará un valor aleatorio
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: DEBUG
+        value: "False"
+
+  # Frontend - React (Static Site)
+  - type: web
+    name: ligahikru-frontend
+    env: static
+    region: oregon
+    plan: free
+    buildCommand: cd frontend/react-app && npm install && npm run build
+    staticPublishPath: frontend/react-app/dist
+    rootDir: frontend/react-app
+    envVars:
+      # Actualiza esta URL con la URL real de tu backend después del primer deploy
+      - key: VITE_API_BASE_URL
+        value: https://ligahikru-backend.onrender.com/api
+        # Nota: Necesitarás actualizar esto manualmente después de que el backend esté desplegado
+

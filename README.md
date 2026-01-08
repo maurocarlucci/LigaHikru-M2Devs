@@ -448,6 +448,41 @@ Authorization: Bearer <tu-token-aqui>
 
 Los tokens expiran después de 24 horas (configurable en `ACCESS_TOKEN_EXPIRE_MINUTES`).
 
+## 🌐 Despliegue Público (Demo)
+
+¿Quieres publicar tu proyecto para que otros puedan probarlo? **¡Es súper fácil!**
+
+📖 **Lee la guía completa de despliegue en [DEPLOY.md](DEPLOY.md)**
+
+### Opciones Recomendadas (Gratis para Demos):
+
+1. **Render.com** ⭐ (MÁS FÁCIL)
+   - Despliega backend y frontend en minutos
+   - Gratis para demos
+   - Auto-deploy desde GitHub
+   - [Ver guía completa →](DEPLOY.md#-opción-recomendada-rendercom-más-fácil)
+
+2. **Railway.app**
+   - Similar a Render, muy fácil de usar
+   - $5 de crédito gratis al mes
+   - [Ver guía →](DEPLOY.md#-alternativa-railwayapp-también-muy-fácil)
+
+3. **Vercel (Frontend) + Render (Backend)**
+   - Lo mejor de ambos mundos
+   - Vercel excelente para React
+   - [Ver guía →](DEPLOY.md#-alternativa-vercel-frontend--render-backend)
+
+### Pasos Rápidos (Render.com):
+
+1. Sube tu código a GitHub
+2. Ve a [render.com](https://render.com) y crea cuenta
+3. **Backend**: "New Web Service" → Conecta repo → Configura Python
+4. **Frontend**: "New Static Site" → Conecta repo → Configura Node.js
+5. Agrega variables de entorno
+6. ¡Listo! Tu app estará pública en minutos
+
+**Nota**: Los servicios gratuitos pueden "dormirse" después de 15 min de inactividad. La primera petición puede tardar ~30 segundos.
+
 ## 🔧 Próximos Pasos (Opcional)
 
 - [ ] Implementar Azure Functions para ingestión automática
@@ -455,7 +490,7 @@ Los tokens expiran después de 24 horas (configurable en `ACCESS_TOKEN_EXPIRE_MI
 - [ ] Agregar más formatos de archivo
 - [ ] Implementar cache de respuestas
 - [ ] Agregar métricas y logging
-- [ ] Deploy a Azure App Service
+- [x] Deploy a ambiente público (ver DEPLOY.md)
 - [ ] Recuperación de contraseña
 - [ ] Verificación de email
 

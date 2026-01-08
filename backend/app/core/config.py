@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     
+    # CORS (para producción, separar múltiples orígenes con comas)
+    CORS_ORIGINS: str = "*"  # En producción, usar: "https://tu-frontend.com,https://otro-dominio.com"
+    
     class Config:
         env_file = ".env"
         case_sensitive = True

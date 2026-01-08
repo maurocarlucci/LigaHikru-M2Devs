@@ -1,0 +1,5 @@
+# Procfile para plataformas como Heroku, Render, etc.
+# Render usará este archivo automáticamente si existe
+# Nota: Este archivo debe estar en la raíz del backend
+web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+

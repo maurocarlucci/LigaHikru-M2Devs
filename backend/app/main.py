@@ -11,10 +11,15 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS
+# CORS - Configuración flexible para desarrollo y producción
+cors_origins = settings.CORS_ORIGINS.split(",") if "," in settings.CORS_ORIGINS else [settings.CORS_ORIGINS]
+# Si es "*", mantener como lista con "*"
+if settings.CORS_ORIGINS.strip() == "*":
+    cors_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, especificar dominios
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
