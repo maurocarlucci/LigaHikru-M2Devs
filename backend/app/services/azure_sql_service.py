@@ -15,26 +15,33 @@ class AzureSQLService:
             self.Session = None
             return
         
-        # Construir connection string
-        params = urllib.parse.quote_plus(
-            f"Driver={settings.AZURE_SQL_DRIVER};"
-            f"Server=tcp:{settings.AZURE_SQL_SERVER},1433;"
-            f"Database={settings.AZURE_SQL_DATABASE};"
-            f"Uid={settings.AZURE_SQL_USERNAME};"
-            f"Pwd={settings.AZURE_SQL_PASSWORD};"
-            f"Encrypt=yes;"
-            f"TrustServerCertificate=no;"
-            f"Connection Timeout=30;"
+        # Construir connection string usando pymssql (compatible con Linux)
+        # pymssql no requiere drivers ODBC del sistema
+        # Para Azure SQL, el servidor debe incluir el puerto en el formato correcto
+        server = settings.AZURE_SQL_SERVER.replace(',1433', '').replace(':1433', '')
+        connection_string = (
+            f"mssql+pymssql://{urllib.parse.quote(settings.AZURE_SQL_USERNAME)}:"
+            f"{urllib.parse.quote(settings.AZURE_SQL_PASSWORD)}@{server}:1433/"
+            f"{settings.AZURE_SQL_DATABASE}"
         )
         
-        connection_string = f"mssql+pyodbc:///?odbc_connect={params}"
-        
         try:
-            self.engine = create_engine(connection_string, pool_pre_ping=True)
+            self.engine = create_engine(connection_string, pool_pre_ping=True, connect_args={
+                "timeout": 30,
+                "encrypt": True,
+                "trust_server_certificate": False
+            })
             self.Session = sessionmaker(bind=self.engine)
             self._create_tables()
         except Exception as e:
-            raise Exception(f"Error conectando a SQL: {str(e)}")
+            # En lugar de fallar completamente, solo mostrar warning
+            # Esto permite que la app inicie aunque SQL falle
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Advertencia: Error creando tablas SQL: {str(e)}")
+            # No lanzar excepción, permitir que la app continúe
+            # self.engine = None
+            # self.Session = None
     
     def _create_tables(self):
         """Crea las tablas necesarias si no existen"""
