@@ -26,11 +26,9 @@ class AzureSQLService:
         )
         
         try:
-            self.engine = create_engine(connection_string, pool_pre_ping=True, connect_args={
-                "timeout": 30,
-                "encrypt": True,
-                "trust_server_certificate": False
-            })
+            # pymssql maneja la encriptación automáticamente con Azure SQL
+            # No necesita connect_args adicionales
+            self.engine = create_engine(connection_string, pool_pre_ping=True)
             self.Session = sessionmaker(bind=self.engine)
             self._create_tables()
         except Exception as e:
